@@ -15,20 +15,17 @@
       margin: 0;
       padding: 0;
     }
-
     .navbar {
       background-color: #000;
       padding: 10px;
       text-align: center;
     }
-
     .navbar a {
       color: #fff;
       margin: 0 15px;
       text-decoration: none;
       font-family: 'Orbitron', sans-serif;
     }
-
     .hero {
       height: 60vh;
       display: flex;
@@ -37,35 +34,35 @@
       align-items: center;
       text-align: center;
     }
-
     h1 {
       text-align: center;
       font-size: 2.5rem;
       padding: 2rem 1rem 0 1rem;
       font-family: 'Orbitron', sans-serif;
     }
-
-    .container {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 1.5rem;
-      background: rgba(255, 255, 255, 0.85);
-      border-radius: 10px;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.9);
       color: #222;
-      font-family: serif;
+      padding: 1.5rem;
+      border-radius: 10px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
     }
-
-    .container h2 {
-      font-size: 1.5rem;
-      margin-bottom: 0.5rem;
+    .card h2 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
     }
-
-    .container p {
-      line-height: 1.5;
-      margin-bottom: 1.2rem;
+    .card p {
+      line-height: 1.6;
+      margin-bottom: 1rem;
     }
-
     textarea {
       width: 100%;
       border: 1px solid #ccc;
@@ -74,7 +71,6 @@
       font-size: 1rem;
       font-family: inherit;
     }
-
     button {
       margin-top: 0.5rem;
       background: #111;
@@ -84,7 +80,6 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
     button:hover {
       background-color: #333;
     }
@@ -96,33 +91,27 @@
     <a href="consciousness-framework.html">Consciousness Framework</a>
     <a href="#">Future Page</a>
   </div>
-
   <div class="hero">
     <h1>The Consciousness Integration Framework</h1>
   </div>
-
-  <div class="container">
-    <!-- Concept Card 1 -->
-  <div class="card">
-    <h2>Dimensional Identity and Multiversal Continuity</h2>
-    <p>
-      Human identity is not singular, but exists as a fractal presence across multiple dimensional timelines. Dreams, deja vu, and altered states are bleed-throughs—echoes of these concurrent selves. Integration is not recollection of one linear past but a resonance attunement across versions of self.
-    </p>
-    <h4>Add Your Insights:</h4>
-    <textarea rows="3" placeholder="Share your reflections or perspectives here..."></textarea>
-    <br />
-    <button type="submit">Submit</button>
+  <div class="grid">
+    <div class="card">
+      <h2>Dimensional Identity and Multiversal Continuity</h2>
+      <p>Human identity is not singular, but exists as a fractal presence across multiple dimensional timelines. Dreams, deja vu, and altered states are bleed-throughs—echoes of these concurrent selves. Integration is not recollection of one linear past but a resonance attunement across versions of self.</p>
+      <h4>Add Your Insights:</h4>
+      <textarea rows="3" placeholder="Share your reflections or perspectives here..."></textarea>
+      <br />
+      <button type="submit">Submit</button>
+    </div>
+    <div class="card">
+      <h2>Consciousness as Foundational Reality</h2>
+      <p>Consciousness precedes physical reality and serves as the fundamental substrate through which all manifestation arises. Rather than emerging from the brain, subjective experience reflects interaction with a unified field of intelligence. Evidence from quantum mechanics, neuroscience, and systems theory supports the primacy of conscious observation in shaping reality.</p>
+      <h4>Add Your Insights:</h4>
+      <textarea rows="3" placeholder="Share your reflections or perspectives here..."></textarea>
+      <br />
+      <button type="submit">Submit</button>
+    </div>
+    <!-- Add additional cards here -->
   </div>
-    <!-- Concept Card 2 -->
-  <div class="card">
-    <h2>Consciousness as Foundational Reality</h2>
-  <p>
-    Consciousness precedes physical reality and serves as the fundamental substrate through which all manifestation arises. Rather than emerging from the brain, subjective experience reflects interaction with a unified field of intelligence. Evidence from quantum mechanics, neuroscience, and systems theory supports the primacy of conscious observation in shaping reality.
-  </p>
-  <h4>Add Your Insights:</h4>
-  <textarea rows="3" placeholder="Share your reflections or perspectives here..."></textarea>
-  <br />
-  <button type="submit">Submit</button>
-</div>
 </body>
 </html>
