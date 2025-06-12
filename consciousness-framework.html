@@ -16,7 +16,7 @@
       padding: 0;
     }
     .navbar {
-      background-color: #111;
+      background-color: #000;
       padding: 10px;
       text-align: center;
     }
@@ -24,6 +24,7 @@
       color: #fff;
       margin: 0 15px;
       text-decoration: none;
+      font-family: 'Orbitron', sans-serif;
     }
     .hero {
       background-image: url('bg.jpg');
@@ -37,9 +38,30 @@
       text-align: center;
     }
     h1 {
-      font-size: 3em;
-      margin: 0;
+      text-align: center;
+    font-size: 2.5rem;
+    padding: 2rem 1rem 0 1rem;
+    font-family: 'Orbitron', sans-serif;
     }
+    .container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 10px;
+    color: #222;
+    font-family: serif;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+  }
+
+  .container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .container p {
+    line-height: 1.5;
+    margin-bottom: 1.2rem;
     .content {
       padding: 40px;
       text-align: center;
@@ -54,23 +76,26 @@
       color: white;
     }
     textarea {
-      width: 100%;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      border: 1px solid #ccc;
-      margin-top: 10px;
-    }
-    button {
-      background-color: #222;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      border: none;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background-color: #444;
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-family: inherit;
+  }
+
+  button {
+    margin-top: 0.5rem;
+    background: #111;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: #333;
     }
   </style>
 </head>
