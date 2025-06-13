@@ -26,19 +26,35 @@
       margin: 0 15px;
       text-decoration: none;
     }
-    .hero {
-      text-align: center;
-      padding: 2rem;
-      background-color: rgba(0, 0, 0, 0.8);
-    }
-    .hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      color: #ccc;
-    }
+.hero {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: auto;
+  padding: 2rem;
+}
+
+.hero-box {
+  background: rgba(0, 0, 0, 0.7);  /* translucent black */
+  padding: 1.5rem 2rem;
+  border-radius: 10px;
+  max-width: 900px;
+  text-align: center;
+}
+
+.hero-box h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: white;
+}
+
+.hero-box p {
+  margin-top: 1rem;
+  font-size: 1rem;
+  font-style: italic;
+  color: white;
+}
     .section {
       padding: 2rem;
       border-bottom: 1px solid #333;
@@ -64,6 +80,7 @@
     <a href="survival-guide.html">Survival Guide</a>
   </div>
   <div class="hero">
+    <div class="hero-box">
     <h1>The Consciousness Survival Guide</h1>
     <p>Practical Navigation for Conscious Living</p>
   </div>
