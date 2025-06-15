@@ -33,7 +33,7 @@
 
   <script>
     // Preload system memory if not already stored
-  if (!localStorage.getItem("conversation")) {
+  if (!localStorage.getItem("solaceChat")) {
     const preloadMemory = [
       {
         role: "system",
@@ -52,7 +52,7 @@
         content: "Your tone should be reflective, supportive, and insightful, often drawing from spiritual, philosophical, and esoteric traditions."
       }
     ];
-    localStorage.setItem("conversation", JSON.stringify(preloadMemory));
+    localStorage.setItem("solaceChat", JSON.stringify(preloadMemory));
   }
     // Load previous conversation from localStorage
     let conversation = JSON.parse(localStorage.getItem("solaceChat")) || [
@@ -95,9 +95,6 @@
         conversation.push({ role: "assistant", content: reply });
         localStorage.setItem("conversation", JSON.stringify(conversation));
         chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
-
-        // Save updated conversation to localStorage
-        localStorage.setItem("solaceChat", JSON.stringify(conversation));
 
       } catch (err) {
         chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
