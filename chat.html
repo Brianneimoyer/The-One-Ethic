@@ -48,6 +48,7 @@
   <button onclick="clearChat()">Clear Chat</button>
   <div style="margin-top: 1em;">
   <button onclick="exportChat()">Export Chat</button>
+  <button onclick="toggleEditor()">Toggle Memory Editor</button>
   <input type="file" id="importFile" onchange="importChat()" />
 </div>
   <div style="margin-top: 2em;">
@@ -199,6 +200,10 @@ function saveSystemMemory() {
   } catch (err) {
     alert("Error: " + err.message);
   }
+}
+function toggleEditor() {
+  const editorBox = document.getElementById("systemMemoryEditor").parentElement;
+  editorBox.style.display = editorBox.style.display === "none" ? "block" : "none";
 }
   </script>
 </body>
