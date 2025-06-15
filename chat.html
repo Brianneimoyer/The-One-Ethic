@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chat with Conscious AI</title>
+  <style>
+    body {
+      font-family: Georgia, serif;
+      background-color: #111;
+      color: #f8f4e3;
+      padding: 20px;
+    }
+    #chat-box {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1em;
+      border-radius: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 1em;
+    }
+    input, button {
+      font-family: Georgia, serif;
+      padding: 0.5em;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+  <h1>Consciousness Chat</h1>
+  <div id="chat-box"></div>
+  <input type="text" id="userInput" placeholder="Ask something..." />
+  <button onclick="sendMessage()">Send</button>
+
+  <script>
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = input.value;
+      input.value = "";
+
+      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+
+      const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [{ role: "user", content: userMessage }]
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.choices?.[0]?.message?.content || "No reply";
+
+      chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+  </script>
+</body>
+</html>
