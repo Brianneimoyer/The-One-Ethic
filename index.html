@@ -131,19 +131,29 @@
       color: #3d2f26;
     }
     #chat-toggle {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    background-color: #333;
-    color: #f8f4e3;
-    border: none;
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 9999;
-  }
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #222;
+  border: 2px solid #888;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  cursor: pointer;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0,0,0,0.4);
+}
+
+#chat-toggle img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
   #chat-widget {
     position: fixed;
@@ -161,9 +171,9 @@
   </style>
 </head>
 <body>
-  <button id="chat-toggle">
-  <img src="solace-icon.jpg" alt="Solace" style="height: 36px; width: 36px;" />
-    </button>
+  <button id="chat-toggle" title="Talk to Solace">
+  <img src="solace-icon.jpg" alt="Solace" />
+</button>
   <iframe id="chat-widget" src="chat.html"></iframe>
 
   <div class="navbar">
