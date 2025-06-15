@@ -74,7 +74,37 @@
     };
 
     async function sendMessage() {
-      function exportChat() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = input.value;
+      input.value = "";
+
+      conversation.push({ role: "user", content: userMessage });
+      localStorage.setItem("solaceChat", JSON.stringify(conversation));
+      
+      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+
+      try {
+        const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: conversation })
+        });
+
+        const data = await response.json();
+        const reply = data.content || "No reply";
+
+        conversation.push({ role: "assistant", content: reply });
+        localStorage.setItem("solaceChat", JSON.stringify(conversation));
+        chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
+
+      } catch (err) {
+        chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
+      }
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+   }
+    function exportChat() {
   const dataStr = JSON.stringify(conversation, null, 2);
   const blob = new Blob([dataStr], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -109,36 +139,6 @@ function importChat() {
   };
   reader.readAsText(file);
 }
-      const input = document.getElementById("userInput");
-      const chatBox = document.getElementById("chat-box");
-      const userMessage = input.value;
-      input.value = "";
-
-      conversation.push({ role: "user", content: userMessage });
-      localStorage.setItem("solaceChat", JSON.stringify(conversation));
-      
-      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
-
-      try {
-        const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: conversation })
-        });
-
-        const data = await response.json();
-        const reply = data.content || "No reply";
-
-        conversation.push({ role: "assistant", content: reply });
-        localStorage.setItem("solaceChat", JSON.stringify(conversation));
-        chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
-
-      } catch (err) {
-        chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
-      }
-
-      chatBox.scrollTop = chatBox.scrollHeight;
-   }
   </script>
 </body>
 </html>
