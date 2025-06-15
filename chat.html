@@ -47,9 +47,9 @@
           messages: [{ role: "user", content: userMessage }]
         })
       });
-
+      console.log("Response from server:", data);
       const data = await response.json();
-      const reply = data.choices?.[0]?.message?.content || "No reply";
+      const reply = data.content || "No reply";
 
       chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
       chatBox.scrollTop = chatBox.scrollHeight;
