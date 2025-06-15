@@ -78,7 +78,7 @@
       input.value = "";
 
       conversation.push({ role: "user", content: userMessage });
-      localStorage.setItem("conversation", JSON.stringify(conversation));
+      localStorage.setItem("solaceChat", JSON.stringify(conversation));
       
       chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
 
@@ -93,7 +93,7 @@
         const reply = data.content || "No reply";
 
         conversation.push({ role: "assistant", content: reply });
-        localStorage.setItem("conversation", JSON.stringify(conversation));
+        localStorage.setItem("solaceChat", JSON.stringify(conversation));
         chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
 
       } catch (err) {
