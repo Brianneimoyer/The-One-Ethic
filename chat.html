@@ -39,8 +39,9 @@
       input.value = "";
 
       chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
-
-      const response = await fetch("deploy-express-on-railway-production.up.railway.app", {
+     
+      try {
+        const response = await fetch("deploy-express-on-railway-production.up.railway.app", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -49,12 +50,15 @@
       });
       
       const data = await response.json();
-      console.log("Response from server:", data);
-      const reply = data.content || "No reply";
-
+      const reply = data.content || "No reply from AI";
       chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
-      chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) {
+      chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
+      console.error("Request failed:", err);
     }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
   </script>
 </body>
 </html>
