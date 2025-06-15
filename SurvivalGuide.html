@@ -172,14 +172,6 @@
   </style>
 </head>
 <body>
-  <script>
-  const toggleBtn = document.getElementById('chat-toggle');
-  const chatFrame = document.getElementById('chat-widget');
-
-  toggleBtn.addEventListener('click', () => {
-    chatFrame.style.display = chatFrame.style.display === 'none' ? 'block' : 'none';
-  });
-</script>
   <button id="chat-toggle">💬</button>
 <iframe id="chat-widget" src="chat.html"></iframe>
   <div class="navbar">
@@ -188,6 +180,15 @@
     <a href="Key Concepts of Consciousness.html">Key Concepts</a>
     <a href="SurvivalGuide.html">Survival Guide</a>
   </div>
+  
+  <script>
+  const toggleBtn = document.getElementById('chat-toggle');
+  const chatFrame = document.getElementById('chat-widget');
+
+  toggleBtn.addEventListener('click', () => {
+    chatFrame.style.display = chatFrame.style.display === 'none' ? 'block' : 'none';
+  });
+</script>
 
   <div class="hero">
     <div class="hero-box">
