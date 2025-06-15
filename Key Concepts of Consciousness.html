@@ -74,9 +74,47 @@
     li {
       margin-bottom: 0.75rem;
     }
+    #chat-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #333;
+    color: #f8f4e3;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 9999;
+  }
+
+  #chat-widget {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 400px;
+    height: 500px;
+    display: none;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    z-index: 9998;
+  }
   </style>
 </head>
 <body>
+  <button id="chat-toggle">💬</button>
+<iframe id="chat-widget" src="chat.html"></iframe>
+<script>
+  const toggleBtn = document.getElementById('chat-toggle');
+  const chatFrame = document.getElementById('chat-widget');
+
+  toggleBtn.addEventListener('click', () => {
+    chatFrame.style.display = chatFrame.style.display === 'none' ? 'block' : 'none';
+  });
+</script>
   <div class="navbar">
     <a href="index.html">Home</a>
     <a href="consciousness-framework.html">Consciousness Framework</a>
