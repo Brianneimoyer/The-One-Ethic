@@ -32,37 +32,54 @@
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    let conversation = [
-  { role: "system", content: "You are an intuitive, empathetic AI assistant named Solace, guiding users through consciousness, philosophy, and personal growth." }
-];
+    // Load previous conversation from localStorage
+    let conversation = JSON.parse(localStorage.getItem("solaceChat")) || [
+    { role: "system", content: "You are an intuitive, empathetic AI assistant named Solace, guiding users through consciousness, philosophy, and personal growth." }
+    ];
 
-async function sendMessage() {
-  const input = document.getElementById("userInput");
-  const chatBox = document.getElementById("chat-box");
-  const userMessage = input.value;
-  input.value = "";
+    // Display previous chat history on load
+    window.onload = () => {
+     const chatBox = document.getElementById("chat-box");
+     conversation.forEach(msg => {
+       if (msg.role !== "system") {
+          const label = msg.role === "user" ? "You" : "AI";
+          chatBox.innerHTML += `<p><strong>${label}:</strong> ${msg.content}</p>`;
+        }
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
 
-  conversation.push({ role: "user", content: userMessage });
-  chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+    async function sendMessage() {
+      const input = document.getElementById("userInput");
+      const chatBox = document.getElementById("chat-box");
+      const userMessage = input.value;
+      input.value = "";
 
-  try {
-    const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ messages: conversation })
-    });
+      conversation.push({ role: "user", content: userMessage });
+      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
 
-    const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "No reply";
+      try {
+        const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: conversation })
+        });
 
-    conversation.push({ role: "assistant", content: reply });
-    chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
-  } catch (err) {
-    chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
-  }
+        const data = await response.json();
+        const reply = data.content || "No reply";
 
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
+        conversation.push({ role: "assistant", content: reply });
+        chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
+
+        // Save updated conversation to localStorage
+        localStorage.setItem("solaceChat", JSON.stringify(conversation));
+
+      } catch (err) {
+        chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
+      }
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+   }
   </script>
 </body>
 </html>
