@@ -48,6 +48,10 @@
           messages: [{ role: "user", content: userMessage }]
         })
       });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status}\n${errorText}`);
       
       const data = await response.json();
       const reply = data.content || "No reply from AI";
