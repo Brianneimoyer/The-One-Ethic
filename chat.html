@@ -32,7 +32,7 @@
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    let conversation = [];
+    let conversation = [{ role: "system", content: "You are an intuitive, empathetic AI assistant named Solace, guiding users through consciousness, philosophy, and personal growth." }];
 
 async function sendMessage() {
   const input = document.getElementById("userInput");
