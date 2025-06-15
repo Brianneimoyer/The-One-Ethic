@@ -22,6 +22,8 @@
       font-family: Georgia, serif;
       padding: 0.5em;
       font-size: 1em;
+      <button onclick="exportChat()">Export Chat</button>
+      <input type="file" id="importFile" onchange="importChat()" />
     }
   </style>
 </head>
@@ -72,6 +74,41 @@
     };
 
     async function sendMessage() {
+      function exportChat() {
+  const dataStr = JSON.stringify(conversation, null, 2);
+  const blob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "solaceChatBackup.json";
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function importChat() {
+  const fileInput = document.getElementById("importFile");
+  const file = fileInput.files[0];
+
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (Array.isArray(imported)) {
+        localStorage.setItem("solaceChat", JSON.stringify(imported));
+        location.reload(); // Reload to apply
+      } else {
+        alert("Invalid file format.");
+      }
+    } catch (err) {
+      alert("Error importing chat: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
       const input = document.getElementById("userInput");
       const chatBox = document.getElementById("chat-box");
       const userMessage = input.value;
