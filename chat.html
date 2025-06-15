@@ -160,7 +160,10 @@ function importChat() {
       const imported = JSON.parse(e.target.result);
       if (Array.isArray(imported)) {
         localStorage.setItem("solaceChat", JSON.stringify(imported));
+        
+        const chatBox = document.getElementById("chat-box");
         chatBox.scrollTop = chatBox.scrollHeight;
+        
         location.reload(); // Reload to apply
       } else {
         alert("Invalid file format.");
