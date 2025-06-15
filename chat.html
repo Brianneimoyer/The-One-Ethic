@@ -51,7 +51,7 @@
   <button onclick="toggleEditor()">Toggle Memory Editor</button>
   <input type="file" id="importFile" onchange="importChat()" />
 </div>
-  <div style="margin-top: 2em;">
+  <div style="margin-top: 2em; display: none;">
   <h3>Edit Solace's Memory</h3>
   <textarea id="systemMemoryEditor" style="width: 100%; height: 200px; background: #222; color: #f8f4e3; border: 1px solid #444; border-radius: 5px; padding: 0.5em; font-family: monospace;"></textarea>
   <button onclick="saveSystemMemory()">Update Memory</button>
@@ -129,7 +129,7 @@
 
         conversation.push({ role: "assistant", content: reply });
         localStorage.setItem("solaceChat", JSON.stringify(conversation));
-        chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
+        chatBox.innerHTML += `<p><strong>AI [${timestampAI}]:</strong> ${reply}</p>`;
       } catch (err) {
         chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
       }
@@ -160,6 +160,7 @@ function importChat() {
       const imported = JSON.parse(e.target.result);
       if (Array.isArray(imported)) {
         localStorage.setItem("solaceChat", JSON.stringify(imported));
+        chatBox.scrollTop = chatBox.scrollHeight;
         location.reload(); // Reload to apply
       } else {
         alert("Invalid file format.");
