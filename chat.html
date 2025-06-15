@@ -33,36 +33,38 @@
 
   <script>
     async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const chatBox = document.getElementById("chat-box");
-      const userMessage = input.value;
-      input.value = "";
+  const input = document.getElementById("userInput");
+  const chatBox = document.getElementById("chat-box");
+  const userMessage = input.value;
+  input.value = "";
 
-      chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
-     
-      try {
-        const response = await fetch("deploy-express-on-railway-production.up.railway.app", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: [{ role: "user", content: userMessage }]
-        })
-      });
+  chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.status}\n${errorText}`);
-      
-      const data = await response.json();
-      const reply = data.content || "No reply from AI";
-      chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
-    } catch (err) {
-      chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
-      console.error("Request failed:", err);
+  try {
+    const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [{ role: "user", content: userMessage }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server error: ${response.status}\n${errorText}`);
     }
 
-    chatBox.scrollTop = chatBox.scrollHeight;
+    const data = await response.json();
+    const reply = data.content || "No reply from AI";
+    chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
+
+  } catch (err) {
+    chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
+    console.error("Request failed:", err);
   }
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
   </script>
 </body>
 </html>
