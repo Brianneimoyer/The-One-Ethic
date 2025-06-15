@@ -32,7 +32,9 @@
   <button onclick="sendMessage()">Send</button>
 
   <script>
-    let conversation = [{ role: "system", content: "You are an intuitive, empathetic AI assistant named Solace, guiding users through consciousness, philosophy, and personal growth." }];
+    let conversation = [
+  { role: "system", content: "You are an intuitive, empathetic AI assistant named Solace, guiding users through consciousness, philosophy, and personal growth." }
+];
 
 async function sendMessage() {
   const input = document.getElementById("userInput");
@@ -41,7 +43,6 @@ async function sendMessage() {
   input.value = "";
 
   conversation.push({ role: "user", content: userMessage });
-
   chatBox.innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
 
   try {
@@ -50,9 +51,10 @@ async function sendMessage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ messages: conversation })
     });
+
     const data = await response.json();
-    const reply = data.content || "No reply";
-    
+    const reply = data.choices?.[0]?.message?.content || "No reply";
+
     conversation.push({ role: "assistant", content: reply });
     chatBox.innerHTML += `<p><strong>AI:</strong> ${reply}</p>`;
   } catch (err) {
