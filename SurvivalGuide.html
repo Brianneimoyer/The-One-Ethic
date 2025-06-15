@@ -173,18 +173,27 @@
 }
 
   #chat-widget {
-    position: fixed;
+  position: fixed;
+  bottom: 100px;
+  right: 30px;
+  width: 480px;
+  height: 620px;
+  display: none;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 25px rgba(255, 255, 200, 0.2), 0 0 8px rgba(255, 255, 150, 0.1);
+  z-index: 9998;
+  transition: all 0.3s ease;
+}
+    @media (max-width: 600px) {
+  #chat-widget {
+    width: 95%;
+    height: 90%;
+    right: 2.5%;
     bottom: 80px;
-    right: 20px;
-    width: 400px;
-    height: 500px;
-    display: none;
-    border: none;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 0 15px rgba(0,0,0,0.3);
-    z-index: 9998;
   }
+}
   </style>
 </head>
 <body>
