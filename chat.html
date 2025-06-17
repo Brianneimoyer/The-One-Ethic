@@ -223,7 +223,42 @@
     console.error("Survival Guide load error:", error);
   }
 }
-
+    
+const reflectivePrompts = [
+  {
+    tag: "overwhelm",
+    prompts: [
+      "What feels like too much to carry right now?",
+      "Would it help to name what's weighing on you most?",
+      "If you could offload one thing today, what would it be?"
+    ]
+  },
+  {
+    tag: "doubt",
+    prompts: [
+      "Is there a part of you that feels unheard or uncertain?",
+      "What would it mean to trust yourself right now?",
+      "What fear is asking to be understood, not silenced?"
+    ]
+  },
+  {
+    tag: "disconnection",
+    prompts: [
+      "When did you last feel truly connected—to yourself or something greater?",
+      "What does your soul long to remember?",
+      "Could stillness help you listen to what’s beneath the noise?"
+    ]
+  },
+  {
+    tag: "growth",
+    prompts: [
+      "What are you outgrowing right now?",
+      "What new part of you is trying to emerge?",
+      "What truth are you almost ready to face?"
+    ]
+  }
+];
+    
 function analyzeSentiment(message) {
   const lowered = message.toLowerCase();
 
@@ -241,15 +276,15 @@ function analyzeSentiment(message) {
   mildPositives.forEach(word => { if (lowered.includes(word)) score += 1; });
   strongPositives.forEach(word => { if (lowered.includes(word)) score += 2; });
 
-  return { driftWeight: Math.min(3, Math.abs(score)) }; // normalize
-}
-    let lastDriftTimestamp = 0;
+  const driftWeight = Math.min(3, Math.abs(score));
 
-function shouldTriggerDriftCheck() {
-  const now = Date.now();
-  if (now - lastDriftTimestamp < 60000) return false; // 1-minute cooldown
-  lastDriftTimestamp = now;
-  return true;
+  let driftTag = "neutral";
+  if (score <= -3) driftTag = "overwhelm";
+  else if (score < 0) driftTag = "doubt";
+  else if (score >= 3) driftTag = "confidence";
+  else if (score > 0) driftTag = "reflection";
+
+  return { driftWeight, driftTag };
 }
 
 function compareToneWithHistory(message, history) {
@@ -541,13 +576,17 @@ function averageLength(history) {
       const driftIndex = calculateDriftIndex(userMessage, conversation);
       console.log("Drift Index:", driftIndex);
 
-    if (driftIndex >= 3.5 && shouldTriggerDriftCheck()) {
-      chatBox.innerHTML += `<p style="color:#fc9;"><strong>🌬️ Solace Suggests:</strong> I'm sensing a shift in your energy. Would you like to pause for a breath or check-in?</p>`;
-      conversation.push({
-      role: "system",
-      content: "Emotional drift detected. Suggested a pause or check-in."
-    });
-}
+      if (driftIndex > driftThreshold) {
+        const category = sentimentScore.driftTag || "neutral";
+        const promptGroup = reflectivePrompts.find(p => p.tag === category);
+
+      if (promptGroup) {
+        const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
+        chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
+      } else {
+        chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
+      }
+    }
       localStorage.setItem("solaceChat", JSON.stringify(conversation));
       updateMemoryUsage();
       await rotateMemory();
