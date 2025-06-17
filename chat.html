@@ -101,6 +101,39 @@
       if (e.key === "Enter") sendMessage();
     });
   });
+    
+    let cachedSummary = null;
+    
+    async function getCondensedHistory(convo) {
+  const preserved = convo.slice(-15);
+  const older = convo.slice(0, -15);
+
+  if (older.length === 0) return preserved;
+
+  const summaryPrompt = [
+    { role: "system", content: "Summarize the following conversation as a memory artifact." },
+    ...older
+  ];
+
+  try {
+    const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: summaryPrompt })
+    });
+
+    const data = await response.json();
+    const summary = data.content || "Summary unavailable.";
+
+    return [
+      { role: "system", content: `Previous conversation memory: ${summary}` },
+      ...preserved
+    ];
+  } catch (err) {
+    console.error("Summary error:", err);
+    return preserved; // fallback
+  }
+}
     async function sendMessage() {
       const input = document.getElementById("userInput");
       const chatBox = document.getElementById("chat-box");
@@ -116,11 +149,13 @@
       chatBox.innerHTML += `<p><strong>You [${timestampUser}]:</strong> ${userMessage}</p>`;
       chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
 
+      const condensedMessages = await getCondensedHistory(conversation);
+
       try {
         const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: conversation })
+          body: JSON.stringify({ messages: condensedMessages })
         });
 
         const data = await response.json();
