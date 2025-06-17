@@ -242,7 +242,53 @@
       localStorage.removeItem("solaceChat");
       location.reload();
     }
+    
+async function rotateMemory(threshold = 25) {
+  if (conversation.length <= threshold) return;
 
+  const toArchive = conversation.slice(0, conversation.length - 15);
+  const recent = conversation.slice(-15);
+
+  const summaryPrompt = [
+    { role: "system", content: "Summarize this as a memory artifact. Be concise, but retain major insights and themes." },
+    ...toArchive
+  ];
+
+  try {
+    const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: summaryPrompt })
+    });
+
+    const data = await response.json();
+    const summary = data.content || "Summary unavailable.";
+
+    // Extract aggregate topics
+    const flatText = toArchive.map(m => m.content).join(" ");
+    const topicResponse = await extractTopics(flatText);
+    
+    const archiveEntry = {
+      timestamp: new Date().toISOString(),
+      summary,
+      topics: topicResponse
+    };
+
+    const archive = JSON.parse(localStorage.getItem("solaceArchive") || "[]");
+    archive.push(archiveEntry);
+    localStorage.setItem("solaceArchive", JSON.stringify(archive));
+
+    // Replace with memory summary + recent messages
+    conversation = [
+      { role: "system", content: `Archived memory summary: ${summary}` },
+      ...recent
+    ];
+    localStorage.setItem("solaceChat", JSON.stringify(conversation));
+  } catch (err) {
+    console.error("Error rotating memory:", err);
+  }
+}
+    
     function saveSystemMemory() {
       const editor = document.getElementById("systemMemoryEditor");
       try {
