@@ -85,6 +85,19 @@
       document.getElementById("loadingIndicator").style.display = "none";
     }
 
+    function getMatchingFrameworkStages(topics) {
+  if (!consciousnessFramework.length) return [];
+
+  return consciousnessFramework
+    .filter(stage => stage.traits.some(trait =>
+      topics.includes(trait.toLowerCase())
+    ))
+    .map(stage => ({
+      stage: stage.stage,
+      insight: stage.solace_insight
+    }));
+   }
+
     function updateMemoryUsage() {
       const max = 25;
       const usage = conversation.filter(msg => msg.role !== "system").length;
@@ -111,8 +124,18 @@
     }
 
     let conversation = JSON.parse(localStorage.getItem("solaceChat")) || [];
+    async function loadConsciousnessFramework() {
+  try {
+    const response = await fetch("consciousness_integration_framework.json");
+    if (!response.ok) throw new Error("Failed to load framework.");
+    consciousnessFramework = await response.json();
+  } catch (error) {
+    console.error("Framework load error:", error);
+  }
+}
 
     window.onload = () => {
+      loadConsciousnessFramework();
       conversation.forEach(msg => {
         if (msg.role !== "system") {
           const label = msg.role === "user" ? "You" : "AI";
@@ -369,6 +392,16 @@
 
       const userTopics = await extractTopics(userMessage);
       conversation[conversation.length - 1].topics = userTopics;
+
+      const frameworkMatches = getMatchingFrameworkStages(userTopics);
+      frameworkMatches.forEach(match => {
+      conversation.push({
+      role: "system",
+      content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
+    });
+
+      chatBox.innerHTML += `<p style="color:#6ff;"><em>🔮 Insight [${match.stage}]:</em> ${match.insight}</p>`;
+    });
 
       const { memories: relevantMemory, topScore } = getRelevantMemory(userTopics);
       const condensedMessages = await getCondensedHistory(conversation);
