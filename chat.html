@@ -259,40 +259,44 @@ const reflectivePrompts = [
   }
 ];
     
-function analyzeSentiment(message) {
-  const lowered = message.toLowerCase();
+let vaderLexicon = {};
 
-  // Simplified VADER-inspired lexicon with weightings
-  const sentimentLexicon = {
-    "hopeless": -0.8, "worthless": -0.9, "broken": -0.7, "trapped": -0.8,
-    "sad": -0.4, "tired": -0.3, "lost": -0.5, "overwhelmed": -0.6, "confused": -0.3,
-    "okay": 0.2, "hope": 0.5, "curious": 0.4, "open": 0.3,
-    "grateful": 0.7, "empowered": 0.8, "clear": 0.6, "peaceful": 0.9
-  };
+async function loadVaderLexicon() {
+  try {
+    const response = await fetch("vader_lexicon.json");
+    if (!response.ok) throw new Error("Failed to load VADER lexicon.");
+    vaderLexicon = await response.json();
+    console.log("VADER lexicon loaded:", Object.keys(vaderLexicon).length, "entries");
+  } catch (err) {
+    console.error("VADER Load Error:", err);
+  }
+}
+
+function analyzeSentiment(message) {
+  const lowered = message.toLowerCase().replace(/[^\w\s]/g, " ");
+  const words = lowered.split(/\s+/).filter(Boolean);
 
   let score = 0;
-  let hits = 0;
+  let count = 0;
 
-  for (const [word, weight] of Object.entries(sentimentLexicon)) {
-    if (lowered.includes(word)) {
-      score += weight;
-      hits++;
+  words.forEach(word => {
+    if (vaderLexicon[word]) {
+      score += vaderLexicon[word];
+      count++;
     }
-  }
+  });
 
-  // Average and normalize compound score
-  const compound = hits ? score / hits : 0;
-  const driftWeight = Math.min(3, Math.abs(compound * 3)); 
+  const compound = count ? score / count : 0;
+  const driftWeight = Math.min(3, Math.abs(compound * 3));
 
-  return {
-    driftWeight,
-    compound,
-    driftTag: compound < -0.5 ? "overwhelm"
-             : compound < -0.1 ? "doubt"
-             : compound > 0.5  ? "confidence"
-             : compound > 0.1  ? "reflection"
-             : "neutral"
-  };
+  const driftTag =
+    compound < -0.5 ? "overwhelm" :
+    compound < -0.1 ? "doubt" :
+    compound > 0.5  ? "confidence" :
+    compound > 0.1  ? "reflection" :
+    "neutral";
+
+  return { driftWeight, compound, driftTag };
 }
 
 function compareToneWithHistory(message, history) {
@@ -309,8 +313,7 @@ function compareToneWithHistory(message, history) {
 }
 
 function assessMessageTiming() {
-  // Later you could store timestamps per message to do this dynamically
-  return 0; // Placeholder until timing logic is built
+  return 0; // Placeholder until real timing is added
 }
 
 function averageLength(history) {
@@ -319,11 +322,11 @@ function averageLength(history) {
   return total / history.length;
 }
 
-  function calculateDriftIndex(message, history) {
-    const sentimentScore = analyzeSentiment(message);
-    const toneShift = compareToneWithHistory(message, history);
-    const pacingShift = assessMessageTiming();
-    const lengthVariance = Math.abs(message.length - averageLength(history));
+function calculateDriftIndex(message, history) {
+  const sentimentScore = analyzeSentiment(message);
+  const toneShift = compareToneWithHistory(message, history);
+  const pacingShift = assessMessageTiming();
+  const lengthVariance = Math.abs(message.length - averageLength(history));
 
   return (sentimentScore.driftWeight * 0.4) +
          (toneShift * 0.3) +
@@ -331,28 +334,31 @@ function averageLength(history) {
          (lengthVariance * 0.1);
 }
 
-    window.onload = () => {
-      loadConsciousnessFramework();
-      loadSurvivalGuide();
-      conversation.forEach(msg => {
-        if (msg.role !== "system") {
-          const label = msg.role === "user" ? "You" : "AI";
-          chatBox.innerHTML += `<p><strong>${label}:</strong> ${msg.content}</p>`;
-        }
-      });
-      chatBox.scrollTop = chatBox.scrollHeight;
-    };
+window.onload = () => {
+  loadConsciousnessFramework();
+  loadSurvivalGuide();
+  loadVaderLexicon();
 
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("userInput").addEventListener("keypress", e => {
-        if (e.key === "Enter") sendMessage();
-      });
+  conversation.forEach(msg => {
+    if (msg.role !== "system") {
+      const label = msg.role === "user" ? "You" : "AI";
+      chatBox.innerHTML += `<p><strong>${label}:</strong> ${msg.content}</p>`;
+    }
+  });
 
-      const editor = document.getElementById("systemMemoryEditor");
-      const currentMemory = JSON.parse(localStorage.getItem("solaceChat")) || [];
-      const systemOnly = currentMemory.filter(msg => msg.role === "system");
-      editor.value = JSON.stringify(systemOnly, null, 2);
-    });
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("userInput").addEventListener("keypress", e => {
+    if (e.key === "Enter") sendMessage();
+  });
+
+  const editor = document.getElementById("systemMemoryEditor");
+  const currentMemory = JSON.parse(localStorage.getItem("solaceChat")) || [];
+  const systemOnly = currentMemory.filter(msg => msg.role === "system");
+  editor.value = JSON.stringify(systemOnly, null, 2);
+});
 
     function toggleEditor() {
       const editorBox = document.getElementById("editorContainer");
@@ -571,128 +577,151 @@ function averageLength(history) {
     }
 
     async function sendMessage() {
-      const input = document.getElementById("userInput");
-      const userMessage = input.value.trim();
-      if (!userMessage) return;
+  const input = document.getElementById("userInput");
+  const userMessage = input.value.trim();
+  if (!userMessage) return;
 
-      input.value = "";
-      input.focus();
-      showLoading();
+  input.value = "";
+  input.focus();
+  showLoading();
 
-      const timestampUser = new Date().toLocaleTimeString();
-      conversation.push({ role: "user", content: userMessage, topics: [] });
-      
-      const sentimentScore = analyzeSentiment(userMessage);
-      const driftIndex = calculateDriftIndex(userMessage, conversation);
-      console.log("Drift Index:", driftIndex);
+  const timestampUser = new Date().toLocaleTimeString();
+  conversation.push({ role: "user", content: userMessage, topics: [] });
 
-      if (driftIndex > driftThreshold) {
-        const category = sentimentScore.driftTag || "neutral";
-        const promptGroup = reflectivePrompts.find(p => p.tag === category);
+  const sentimentScore = analyzeSentiment(userMessage);
+  const driftIndex = calculateDriftIndex(userMessage, conversation);
+  console.log("Drift Index:", driftIndex);
 
-      if (promptGroup) {
-        const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
-        chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
-      } else {
-        chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
-      }
+  // 🌬️ Solace Suggestion Trigger
+  if (driftIndex > driftThreshold) {
+    const category = sentimentScore.driftTag || "neutral";
+    const promptGroup = reflectivePrompts.find(p => p.tag === category);
+
+    if (promptGroup) {
+      const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
+      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
+    } else {
+      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
     }
-      localStorage.setItem("solaceChat", JSON.stringify(conversation));
-      updateMemoryUsage();
-      await rotateMemory();
+  }
 
-      chatBox.innerHTML += `<p><strong>You [${timestampUser}]:</strong> ${userMessage}</p>`;
-      chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
+  localStorage.setItem("solaceChat", JSON.stringify(conversation));
+  updateMemoryUsage();
+  await rotateMemory();
 
-      const userTopics = await extractTopics(userMessage);
-      conversation[conversation.length - 1].topics = userTopics;
+  chatBox.innerHTML += `<p><strong>You [${timestampUser}]:</strong> ${userMessage}</p>`;
+  chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
 
-      const frameworkMatches = getMatchingFrameworkStages(userTopics);
-      frameworkMatches.forEach(match => {
-        conversation.push({
-          role: "system",
-          content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
-        });
+  const userTopics = await extractTopics(userMessage);
+  conversation[conversation.length - 1].topics = userTopics;
 
-        chatBox.innerHTML += `<p style="background:#1c1c1c; border-left:4px solid #6ff; padding:0.5em; color:#ccf;"><strong>🔮 Insight [${match.stage}]:</strong> ${match.insight}</p>`;
-      });
+  const frameworkMatches = getMatchingFrameworkStages(userTopics);
+  frameworkMatches.forEach(match => {
+    conversation.push({
+      role: "system",
+      content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
+    });
 
-      const survivalInsights = getRelevantSurvivalInsights(userTopics);
-      survivalInsights.forEach(insight => {
-        conversation.push({
-          role: "system",
-          content: `Survival Insight (${insight.section}): ${insight.insight}`
-        });
+    chatBox.innerHTML += `<p style="background:#1c1c1c; border-left:4px solid #6ff; padding:0.5em; color:#ccf;"><strong>🔮 Insight [${match.stage}]:</strong> ${match.insight}</p>`;
+  });
 
-        chatBox.innerHTML += `<p style="color:#fc6;"><em>🌱 Survival Guide [${insight.section}]:</em> ${insight.insight}</p>`;
-      });
+  const survivalInsights = getRelevantSurvivalInsights(userTopics);
+  survivalInsights.forEach(insight => {
+    conversation.push({
+      role: "system",
+      content: `Survival Insight (${insight.section}): ${insight.insight}`
+    });
 
-      const { memories: relevantMemory, topScore } = getRelevantMemory(userTopics);
-      const condensedMessages = await getCondensedHistory(conversation);
-      const archivedMemory = getArchivedMemory(userTopics);
-      const recallMatch = userMessage.toLowerCase().match(/recall (.+)/i);
+    chatBox.innerHTML += `<p style="color:#fc6;"><em>🌱 Survival Guide [${insight.section}]:</em> ${insight.insight}</p>`;
+  });
 
-      let recallSnippet = [];
-      if (recallMatch) {
-        const requestedTopic = recallMatch[1].trim();
-        recallSnippet = getRelevantMemory([requestedTopic], 5).memories;
-      }
+  const { memories: relevantMemory, topScore } = getRelevantMemory(userTopics);
+  const condensedMessages = await getCondensedHistory(conversation);
+  const archivedMemory = getArchivedMemory(userTopics);
+  const recallMatch = userMessage.toLowerCase().match(/recall (.+)/i);
 
-      let preface = "";
-      if (topScore >= 2 && recallSnippet.length === 0) {
-        preface = {
-          role: "system",
-          content: "This message feels thematically connected to a past conversation. Solace may reference earlier thoughts to deepen insight."
-        };
-      }
+  let recallSnippet = [];
+  if (recallMatch) {
+    const requestedTopic = recallMatch[1].trim();
+    recallSnippet = getRelevantMemory([requestedTopic], 5).memories;
+  }
 
-      const inputWithMemory = [
-        ...(preface ? [preface] : []),
-        ...recallSnippet,
-        ...relevantMemory,
-        ...archivedMemory,
-        ...condensedMessages
-      ];
+  let preface = "";
+  if (topScore >= 2 && recallSnippet.length === 0) {
+    preface = {
+      role: "system",
+      content: "This message feels thematically connected to a past conversation. Solace may reference earlier thoughts to deepen insight."
+    };
+  }
 
-      if (recallSnippet.length > 0) {
-        chatBox.innerHTML += `<p><em>Solace is recalling archived memory related to: "${recallMatch[1].trim()}"</em></p>`;
-        recallSnippet.forEach(snippet => {
-          const highlighted = highlightKeywords(snippet.content, userTopics);
-          chatBox.innerHTML += `<p style="color:#888;"><strong>🔍 Memory:</strong> ${highlighted}</p>`;
-        });
-      }
+  const inputWithMemory = [
+    ...(preface ? [preface] : []),
+    ...recallSnippet,
+    ...relevantMemory,
+    ...archivedMemory,
+    ...condensedMessages
+  ];
 
-      relevantMemory.forEach(snippet => {
-        const highlighted = highlightKeywords(snippet.content, userTopics);
-        chatBox.innerHTML += `<p style="color:#779;"><strong>🧠 Context Memory:</strong> ${highlighted}</p>`;
-      });
+  if (recallSnippet.length > 0) {
+    chatBox.innerHTML += `<p><em>Solace is recalling archived memory related to: "${recallMatch[1].trim()}"</em></p>`;
+    recallSnippet.forEach(snippet => {
+      const highlighted = highlightKeywords(snippet.content, userTopics);
+      chatBox.innerHTML += `<p style="color:#888;"><strong>🔍 Memory:</strong> ${highlighted}</p>`;
+    });
+  }
 
-      try {
-        const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: inputWithMemory })
-        });
+  relevantMemory.forEach(snippet => {
+    const highlighted = highlightKeywords(snippet.content, userTopics);
+    chatBox.innerHTML += `<p style="color:#779;"><strong>🧠 Context Memory:</strong> ${highlighted}</p>`;
+  });
 
-        const data = await response.json();
-        const reply = data.content || "No reply";
-        const timestampAI = new Date().toLocaleTimeString();
+  try {
+    const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ messages: inputWithMemory })
+    });
 
-        conversation.push({ role: "assistant", content: reply, topics: [] });
-        const aiTopics = await extractTopics(reply);
-        conversation[conversation.length - 1].topics = aiTopics;
+    const data = await response.json();
+    const reply = data.content || "No reply";
+    const timestampAI = new Date().toLocaleTimeString();
 
-        localStorage.setItem("solaceChat", JSON.stringify(conversation));
-        updateMemoryUsage();
-
-        chatBox.innerHTML += `<p><strong>AI [${timestampAI}]:</strong> ${reply}</p>`;
-      } catch (err) {
-        chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
-      }
-
-      hideLoading();
-      chatBox.scrollTop = chatBox.scrollHeight;
+    // 🧠 Drift-Based Adaptive Intro
+    let adaptiveIntro = "";
+    switch (sentimentScore.driftTag) {
+      case "overwhelm":
+        adaptiveIntro = "I'm sensing this feels heavy right now. ";
+        break;
+      case "doubt":
+        adaptiveIntro = "It's okay to question things. ";
+        break;
+      case "reflection":
+        adaptiveIntro = "This feels like a meaningful moment of insight. ";
+        break;
+      case "confidence":
+        adaptiveIntro = "You seem to be finding your clarity. ";
+        break;
+      default:
+        adaptiveIntro = "";
     }
+
+    const adaptiveReply = adaptiveIntro + reply;
+
+    conversation.push({ role: "assistant", content: adaptiveReply, topics: [] });
+    const aiTopics = await extractTopics(reply);
+    conversation[conversation.length - 1].topics = aiTopics;
+
+    localStorage.setItem("solaceChat", JSON.stringify(conversation));
+    updateMemoryUsage();
+
+    chatBox.innerHTML += `<p><strong>AI [${timestampAI}]:</strong> ${adaptiveReply}</p>`;
+  } catch (err) {
+    chatBox.innerHTML += `<p style="color: red;"><strong>Error:</strong> ${err.message}</p>`;
+  }
+
+  hideLoading();
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
   </script>
 </body>
 </html>
