@@ -163,6 +163,57 @@
   }
 }
 
+function analyzeSentiment(message) {
+  // Very basic placeholder for sentiment — you can replace this with more advanced logic
+  const lowered = message.toLowerCase();
+  const negativity = ["sad", "angry", "tired", "lost", "hopeless"];
+  const positivity = ["hope", "grateful", "excited", "clear", "calm"];
+
+  let score = 0;
+  negativity.forEach(word => { if (lowered.includes(word)) score -= 1; });
+  positivity.forEach(word => { if (lowered.includes(word)) score += 1; });
+
+  return {
+    driftWeight: Math.min(2, Math.abs(score)) // normalize to max 2
+  };
+}
+
+function compareToneWithHistory(message, history) {
+  if (!history.length) return 0;
+  const last = history[history.length - 1].content.toLowerCase();
+  const current = message.toLowerCase();
+
+  let delta = 0;
+  if ((last.includes("hope") && current.includes("lost")) ||
+      (last.includes("calm") && current.includes("overwhelmed"))) {
+    delta += 2;
+  }
+  return delta;
+}
+
+function assessMessageTiming() {
+  // Later you could store timestamps per message to do this dynamically
+  return 0; // Placeholder until timing logic is built
+}
+
+function averageLength(history) {
+  if (!history.length) return 0;
+  const total = history.reduce((sum, msg) => sum + msg.content.length, 0);
+  return total / history.length;
+}
+
+  function calculateDriftIndex(message, history) {
+    const sentimentScore = analyzeSentiment(message);
+    const toneShift = compareToneWithHistory(message, history);
+    const pacingShift = assessMessageTiming();
+    const lengthVariance = Math.abs(message.length - averageLength(history));
+
+  return (sentimentScore.driftWeight * 0.4) +
+         (toneShift * 0.3) +
+         (pacingShift * 0.2) +
+         (lengthVariance * 0.1);
+}
+
     window.onload = () => {
       loadConsciousnessFramework();
       loadSurvivalGuide();
@@ -413,6 +464,16 @@
 
       const timestampUser = new Date().toLocaleTimeString();
       conversation.push({ role: "user", content: userMessage, topics: [] });
+      const driftIndex = calculateDriftIndex(userMessage, conversation);
+      console.log("Drift Index:", driftIndex);
+
+    if (driftIndex >= 2.5) {
+      chatBox.innerHTML += `<p style="color:#fc9;"><strong>🌬️ Solace Suggests:</strong> I'm sensing a shift in your energy. Would you like to pause for a breath or check-in?</p>`;
+      conversation.push({
+      role: "system",
+      content: "Emotional drift detected. Suggested a pause or check-in."
+    });
+}
       localStorage.setItem("solaceChat", JSON.stringify(conversation));
       updateMemoryUsage();
       await rotateMemory();
