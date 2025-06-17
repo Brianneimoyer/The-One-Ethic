@@ -125,7 +125,9 @@
       return scored.slice(0, max).map(entry => ({
         role: "system",
         content: `Relevant memory (${entry.msg.role}): ${entry.msg.content}`
-      }));
+      })),
+        topScore: scored[0]?.score || 0
+      };
     }
 
     async function getCondensedHistory(convo) {
@@ -172,14 +174,36 @@
 
       chatBox.innerHTML += `<p><strong>You [${timestampUser}]:</strong> ${userMessage}</p>`;
       chatBox.scrollTo({ top: chatBox.scrollHeight, behavior: "smooth" });
+     if (recallSnippet.length > 0) {
+     chatBox.innerHTML += `<p><em>Solace is recalling archived memory related to: "${recallMatch[1].trim()}"</em></p>`;
+}
 
       const userTopics = await extractTopics(userMessage);
       conversation[conversation.length - 1].topics = userTopics;
 
-      const memorySnippets = getRelevantMemory(userTopics);
+      const { memories: relevantMemory, topScore } = getRelevantMemory(userTopics);
       const condensedMessages = await getCondensedHistory([...memorySnippets, ...conversation]);
       const archivedMemory = getArchivedMemory(userTopics);
-      const inputWithMemory = [...archivedMemory, ...relevantMemory, ...condensedMessages];
+      const recallMatch = userMessage.toLowerCase().match(/recall (.+)/i);
+      let recallSnippet = [];
+
+      if (recallMatch) {
+      const requestedTopic = recallMatch[1].trim();
+      recallSnippet = getRelevantMemory([requestedTopic], 5);
+}
+      let preface = "";
+      if (topScore >= 2 && recallSnippet.length === 0) {
+        preface = {
+         role: "system",
+       content: "This message feels thematically connected to a past conversation. Solace may reference earlier thoughts to deepen insight."
+      };
+}
+      const inputWithMemory = [
+        ...(preface ? [preface] : []),
+        ...recallSnippet,
+        ...relevantMemory,
+        ...condensedMessages
+      ];
 
       try {
         const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
