@@ -395,13 +395,13 @@
 
       const frameworkMatches = getMatchingFrameworkStages(userTopics);
       frameworkMatches.forEach(match => {
-      conversation.push({
-      role: "system",
-      content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
-    });
+        conversation.push({
+          role: "system",
+          content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
+        });
 
-      chatBox.innerHTML += `<p style="color:#6ff;"><em>🔮 Insight [${match.stage}]:</em> ${match.insight}</p>`;
-    });
+        chatBox.innerHTML += `<p style="background:#1c1c1c; border-left:4px solid #6ff; padding:0.5em; color:#ccf;"><strong>🔮 Insight [${match.stage}]:</strong> ${match.insight}</p>`;
+      });
 
       const { memories: relevantMemory, topScore } = getRelevantMemory(userTopics);
       const condensedMessages = await getCondensedHistory(conversation);
