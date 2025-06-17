@@ -51,13 +51,13 @@
 
   <div id="chat-box"></div>
 
-  <input type="text" id="memorySearchInput" placeholder="Search archived memory..." />
-  <button onclick="searchArchivedMemory()">Search</button>
-  <div id="memorySearchResults" style="margin-top: 1em; color: #ccc;"></div>
-
   <input type="text" id="userInput" placeholder="Ask something..." />
   <button onclick="sendMessage()">Send</button>
   <button onclick="clearChat()">Clear Chat</button>
+
+  <input type="text" id="memorySearchInput" placeholder="Search archived memory..." />
+  <button onclick="searchArchivedMemory()">Search</button>
+  <div id="memorySearchResults" style="margin-top: 1em; color: #ccc;"></div>
 
   <div id="loadingIndicator" style="display:none; color:#ccc;">Solace is thinking...</div>
   <div id="memoryUsage" style="color:#aaa;">Memory usage: 0 / 25 messages</div>
