@@ -142,6 +142,7 @@
     }
 
     let conversation = JSON.parse(localStorage.getItem("solaceChat")) || [];
+    let consciousnessFramework = [];
     async function loadConsciousnessFramework() {
   try {
     const response = await fetch("consciousness_integration_framework.json");
