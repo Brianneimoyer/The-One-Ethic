@@ -178,7 +178,8 @@
 
       const memorySnippets = getRelevantMemory(userTopics);
       const condensedMessages = await getCondensedHistory([...memorySnippets, ...conversation]);
-      const inputWithMemory = [...memorySnippets, ...condensedMessages];
+      const archivedMemory = getArchivedMemory(userTopics);
+      const inputWithMemory = [...archivedMemory, ...relevantMemory, ...condensedMessages];
 
       try {
         const response = await fetch("https://deploy-express-on-railway-production.up.railway.app/chat", {
@@ -287,6 +288,24 @@ async function rotateMemory(threshold = 25) {
   } catch (err) {
     console.error("Error rotating memory:", err);
   }
+}
+  function getArchivedMemory(currentTopics, max = 3) {
+   const archive = JSON.parse(localStorage.getItem("solaceArchive") || "[]");
+   const scored = archive
+     .filter(msg => msg.topics)
+     .map(msg => {
+       const overlap = msg.topics.filter(t => currentTopics.includes(t)).length;
+       return { msg, score: overlap };
+     })
+    .filter(entry => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, max)
+    .map(entry => ({
+      role: "system",
+      content: `Archived memory (${entry.msg.role}): ${entry.msg.content}`
+    }));
+
+  return scored;
 }
     
     function saveSystemMemory() {
