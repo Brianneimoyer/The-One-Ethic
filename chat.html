@@ -262,29 +262,37 @@ const reflectivePrompts = [
 function analyzeSentiment(message) {
   const lowered = message.toLowerCase();
 
-  const strongNegatives = ["hopeless", "worthless", "broken", "trapped"];
-  const mildNegatives = ["sad", "tired", "lost", "overwhelmed", "confused"];
-
-  const mildPositives = ["okay", "hope", "curious", "open"];
-  const strongPositives = ["grateful", "empowered", "clear", "peaceful"];
+  // Simplified VADER-inspired lexicon with weightings
+  const sentimentLexicon = {
+    "hopeless": -0.8, "worthless": -0.9, "broken": -0.7, "trapped": -0.8,
+    "sad": -0.4, "tired": -0.3, "lost": -0.5, "overwhelmed": -0.6, "confused": -0.3,
+    "okay": 0.2, "hope": 0.5, "curious": 0.4, "open": 0.3,
+    "grateful": 0.7, "empowered": 0.8, "clear": 0.6, "peaceful": 0.9
+  };
 
   let score = 0;
+  let hits = 0;
 
-  strongNegatives.forEach(word => { if (lowered.includes(word)) score -= 2; });
-  mildNegatives.forEach(word => { if (lowered.includes(word)) score -= 1; });
+  for (const [word, weight] of Object.entries(sentimentLexicon)) {
+    if (lowered.includes(word)) {
+      score += weight;
+      hits++;
+    }
+  }
 
-  mildPositives.forEach(word => { if (lowered.includes(word)) score += 1; });
-  strongPositives.forEach(word => { if (lowered.includes(word)) score += 2; });
+  // Average and normalize compound score
+  const compound = hits ? score / hits : 0;
+  const driftWeight = Math.min(3, Math.abs(compound * 3)); 
 
-  const driftWeight = Math.min(3, Math.abs(score));
-
-  let driftTag = "neutral";
-  if (score <= -3) driftTag = "overwhelm";
-  else if (score < 0) driftTag = "doubt";
-  else if (score >= 3) driftTag = "confidence";
-  else if (score > 0) driftTag = "reflection";
-
-  return { driftWeight, driftTag };
+  return {
+    driftWeight,
+    compound,
+    driftTag: compound < -0.5 ? "overwhelm"
+             : compound < -0.1 ? "doubt"
+             : compound > 0.5  ? "confidence"
+             : compound > 0.1  ? "reflection"
+             : "neutral"
+  };
 }
 
 function compareToneWithHistory(message, history) {
@@ -573,6 +581,8 @@ function averageLength(history) {
 
       const timestampUser = new Date().toLocaleTimeString();
       conversation.push({ role: "user", content: userMessage, topics: [] });
+      
+      const sentimentScore = analyzeSentiment(userMessage);
       const driftIndex = calculateDriftIndex(userMessage, conversation);
       console.log("Drift Index:", driftIndex);
 
