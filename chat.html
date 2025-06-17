@@ -593,17 +593,17 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("Drift Index:", driftIndex);
 
   // 🌬️ Solace Suggestion Trigger
-  if (driftIndex > driftThreshold) {
-    const category = sentimentScore.driftTag || "neutral";
-    const promptGroup = reflectivePrompts.find(p => p.tag === category);
+  if (driftIndex > driftThreshold && shouldTriggerDriftCheck()) {
+  const category = sentimentScore.driftTag || "neutral";
+  const promptGroup = reflectivePrompts.find(p => p.tag === category);
 
-    if (promptGroup) {
-      const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
-      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
-    } else {
-      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
-    }
+  if (promptGroup) {
+    const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
+    chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
+  } else {
+    chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
   }
+}
 
   localStorage.setItem("solaceChat", JSON.stringify(conversation));
   updateMemoryUsage();
