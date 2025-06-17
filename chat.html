@@ -164,18 +164,31 @@
 }
 
 function analyzeSentiment(message) {
-  // Very basic placeholder for sentiment — you can replace this with more advanced logic
   const lowered = message.toLowerCase();
-  const negativity = ["sad", "angry", "tired", "lost", "hopeless"];
-  const positivity = ["hope", "grateful", "excited", "clear", "calm"];
+
+  const strongNegatives = ["hopeless", "worthless", "broken", "trapped"];
+  const mildNegatives = ["sad", "tired", "lost", "overwhelmed", "confused"];
+
+  const mildPositives = ["okay", "hope", "curious", "open"];
+  const strongPositives = ["grateful", "empowered", "clear", "peaceful"];
 
   let score = 0;
-  negativity.forEach(word => { if (lowered.includes(word)) score -= 1; });
-  positivity.forEach(word => { if (lowered.includes(word)) score += 1; });
 
-  return {
-    driftWeight: Math.min(2, Math.abs(score)) // normalize to max 2
-  };
+  strongNegatives.forEach(word => { if (lowered.includes(word)) score -= 2; });
+  mildNegatives.forEach(word => { if (lowered.includes(word)) score -= 1; });
+
+  mildPositives.forEach(word => { if (lowered.includes(word)) score += 1; });
+  strongPositives.forEach(word => { if (lowered.includes(word)) score += 2; });
+
+  return { driftWeight: Math.min(3, Math.abs(score)) }; // normalize
+}
+    let lastDriftTimestamp = 0;
+
+function shouldTriggerDriftCheck() {
+  const now = Date.now();
+  if (now - lastDriftTimestamp < 60000) return false; // 1-minute cooldown
+  lastDriftTimestamp = now;
+  return true;
 }
 
 function compareToneWithHistory(message, history) {
@@ -467,7 +480,7 @@ function averageLength(history) {
       const driftIndex = calculateDriftIndex(userMessage, conversation);
       console.log("Drift Index:", driftIndex);
 
-    if (driftIndex >= 2.5) {
+    if (driftIndex >= 3.5 && shouldTriggerDriftCheck()) {
       chatBox.innerHTML += `<p style="color:#fc9;"><strong>🌬️ Solace Suggests:</strong> I'm sensing a shift in your energy. Would you like to pause for a breath or check-in?</p>`;
       conversation.push({
       role: "system",
