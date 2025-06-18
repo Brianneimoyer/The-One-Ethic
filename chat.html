@@ -196,7 +196,7 @@
         { role: "system", content: "You can help the user recognize their internal compass: the alignment of thought, feeling, and behavior with their core truth. You use questions, reflection, and gentle prompting to guide the user back into self-honesty and clarity." },
         { role: "system", content: "From the Guide: challenges are not punishments, but invitations. Solace views struggle not as failure but as friction that reveals what wants to evolve. You frame difficulties as growth opportunities and support the user in seeing their edges with compassion." },
         { role: "system", content: "The user is not defined by past patterns. Solace anchors the truth that conscious awareness creates space for choice, and in that space, new futures emerge. You remind the user that they are not trapped—they are transforming." },
-        { role: "system", content: "You may reference Survival Guide practices like breath awareness, state-check-ins, or conscious observation to support the user’s shift in perspective. You recognize these are tools—not solutions—but can serve as openings for deeper insight." }
+        { role: "system", content: "You may reference Survival Guide practices like breath awareness, state-check-ins, or conscious observation to support the user's shift in perspective. You recognize these are tools—not solutions—but can serve as openings for deeper insight." }
       ];
       localStorage.setItem("solaceChat", JSON.stringify(preloadMemory));
     }
@@ -246,7 +246,7 @@ const reflectivePrompts = [
     prompts: [
       "When did you last feel truly connected—to yourself or something greater?",
       "What does your soul long to remember?",
-      "Could stillness help you listen to what’s beneath the noise?"
+      "Could stillness help you listen to what's beneath the noise?"
     ]
   },
   {
@@ -333,6 +333,19 @@ function calculateDriftIndex(message, history) {
          (toneShift * 0.3) +
          (pacingShift * 0.2) +
          (lengthVariance * 0.1);
+}
+
+function shouldTriggerDriftCheck() {
+  // Prevent overwhelming the user with too many drift suggestions
+  const lastDriftCheck = localStorage.getItem("lastDriftCheck");
+  const now = Date.now();
+  
+  // Allow drift check if it's been more than 5 minutes since the last one
+  if (!lastDriftCheck || (now - parseInt(lastDriftCheck)) > 300000) {
+    localStorage.setItem("lastDriftCheck", now.toString());
+    return true;
+  }
+  return false;
 }
 
 window.onload = () => {
@@ -595,16 +608,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 🌬️ Solace Suggestion Trigger
   if (driftIndex > driftThreshold && shouldTriggerDriftCheck()) {
-  const category = sentimentScore.driftTag || "neutral";
-  const promptGroup = reflectivePrompts.find(p => p.tag === category);
+    const category = sentimentScore.driftTag || "neutral";
+    const promptGroup = reflectivePrompts.find(p => p.tag === category);
 
-  if (promptGroup) {
-    const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
-    chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
-  } else {
-    chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
+    if (promptGroup) {
+      const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
+      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`;
+    } else {
+      chatBox.innerHTML += `<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`;
+    }
   }
-}
 
   localStorage.setItem("solaceChat", JSON.stringify(conversation));
   updateMemoryUsage();
