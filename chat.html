@@ -130,6 +130,9 @@
   <div id="loadingIndicator" style="display:none; color:#ccc;">Solace is thinking...</div>
   <div id="memoryUsage" style="color:#aaa;">Memory usage: 0 / 25 messages</div>
 
+  <button id="resetSolace">🔄 Reset Solace</button>
+  <button id="switchUser">👥 Switch User</button>
+
   <div style="margin-top: 1em;">
     <button onclick="exportChat()">Export Chat</button>
     <button onclick="toggleEditor()">Toggle Memory Editor</button>
@@ -141,6 +144,8 @@
     <textarea id="systemMemoryEditor" style="width: 100%; height: 200px;"></textarea>
     <button onclick="saveSystemMemory()">Update Memory</button>
   </div>
+
+  <div id="activeUserDisplay" style="margin-bottom: 10px; font-weight: bold;"></div>
 
   <script>
     const chatBox = document.getElementById("chat-box");
@@ -241,6 +246,10 @@
     throw new Error("No user identity provided.");
   }
 }
+    const activeUserElement = document.getElementById("activeUserDisplay");
+    if (activeUserElement && userIntro) {
+        activeUserElement.innerText = `🧠 Chatting as: ${userIntro}`;
+}
     // Initialize preloaded memory
     function initializeMemory() {
     // Build preload memory
@@ -267,11 +276,33 @@
   // Load memory into conversation state
   conversation = JSON.parse(localStorage.getItem("solaceChat")) || [];
     
-    document.getElementById("resetSolace").addEventListener("click", () => {
-  if (confirm("Are you sure you want to reset Solace? This will erase all memory and start fresh.")) {
-    localStorage.removeItem("solaceUserIntro");
-    localStorage.removeItem("solaceChat");
+  document.getElementById("resetSolace").addEventListener("click", () => {
+    if (confirm("Are you sure you want to reset Solace? This will erase all memory and start fresh.")) {
+      localStorage.removeItem("solaceUserIntro");
+      localStorage.removeItem("solaceChat");
+      location.reload();
+  }
+});
+    
+  document.getElementById("switchUser").addEventListener("click", () => {
+    const newUser = prompt("Enter the new name or identity Solace should recognize:");
+    if (newUser && newUser.trim().length > 0) {
+    const trimmed = newUser.trim();
+      localStorage.setItem("solaceUserIntro", trimmed);
+    if (activeUserElement) {
+      activeUserElement.innerText = `🧠 Chatting as: ${trimmed}`;
+
+    // Replace identity memory entry
+    const memory = JSON.parse(localStorage.getItem("solaceChat")) || [];
+    const updatedMemory = memory.filter(entry => !entry.content.startsWith("This user identifies as"));
+    updatedMemory.push({
+      role: "system",
+      content: `This user identifies as '${trimmed}'. Solace may use this to personalize interactions.`
+    });
+    localStorage.setItem("solaceChat", JSON.stringify(updatedMemory));
     location.reload();
+  } else {
+    alert("A valid identity is required to proceed.");
   }
 });
 
