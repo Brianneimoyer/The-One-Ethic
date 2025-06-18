@@ -798,39 +798,69 @@
 
     // Main message handling function
     async function sendMessage() {
-      if (isProcessingMessage) return;
-      
       const input = document.getElementById("userInput");
       if (!input) return;
-      
+
       const userMessage = input.value.trim();
-      if (!userMessage) return;
+      if (!userMessage || isProcessingMessage) return;
 
       input.value = "";
       input.focus();
       isProcessingMessage = true;
-	    showLoading();
+      showLoading();
 
-      try {
-        const timestampUser = new Date().toLocaleTimeString();
-        conversation.push({ role: "user", content: userMessage, topics: [] });
+  // Retrieve stored conversation or recover default memory if corrupted
+     let messages;
+     try {
+       messages = JSON.parse(localStorage.getItem("solaceChat"));
+       if (!Array.isArray(messages)) throw new Error("Corrupt memory");
+     } catch (e) {
+       console.warn("Memory fallback triggered. Rebuilding from preload...");
+       initializeMemory(); // fallback recovery
+       messages = JSON.parse(localStorage.getItem("solaceChat"));
+     }
 
-        const sentimentScore = analyzeSentiment(userMessage);
-        const driftIndex = calculateDriftIndex(userMessage, conversation);
-        console.log("Drift Index:", driftIndex);
+     messages.push({ role: "user", content: userMessage });
 
-        // Drift detection trigger
-        if (driftIndex > driftThreshold && shouldTriggerDriftCheck()) {
-          const category = sentimentScore.driftTag || "neutral";
-          const promptGroup = reflectivePrompts.find(p => p.tag === category);
+// Add user message to visual history and memory stack
+     const timestampUser = new Date().toLocaleTimeString();
+     conversation.push({ role: "user", content: userMessage, topics: [] });
+     addToChatBox(`<div class="user-message"><strong>You:</strong> ${userMessage}<br><span class="timestamp">${timestampUser}</span></div>`);
 
-          if (promptGroup) {
-            const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
-            addToChatBox(`<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`);
-          } else {
-            addToChatBox(`<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`);
-          }
-        }
+  // Emotion drift detection
+     const sentimentScore = analyzeSentiment(userMessage);
+     const driftIndex = calculateDriftIndex(userMessage, conversation);
+     console.log("Drift Index:", driftIndex);
+
+     if (driftIndex > driftThreshold && shouldTriggerDriftCheck()) {
+       const category = sentimentScore.driftTag || "neutral";
+       const promptGroup = reflectivePrompts.find(p => p.tag === category);
+       const suggestion = promptGroup
+         ? promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)]
+         : "I'm sensing a shift. Would you like to pause or reflect?";
+       addToChatBox(`<p><em>🌬️ Solace Suggests: ${suggestion}</em></p>`);
+     }
+
+  // Send to OpenAI API
+     try {
+       const response = await getCompletion(messages);
+       const assistantReply = response.content;
+       const timestampBot = new Date().toLocaleTimeString();
+
+    // Save AI reply
+       messages.push({ role: "assistant", content: assistantReply });
+       conversation.push({ role: "assistant", content: assistantReply });
+
+       addToChatBox(`<div class="assistant-message"><strong>Solace:</strong> ${assistantReply}<br><span class="timestamp">${timestampBot}</span></div>`);
+       localStorage.setItem("solaceChat", JSON.stringify(messages));
+     } catch (error) {
+       console.error("OpenAI API error:", error);
+       addToChatBox(`<p><strong>Solace:</strong> I'm having trouble processing that right now. Please try again shortly.</p>`);
+     }
+
+     isProcessingMessage = false;
+     hideLoading();
+   }
 
         localStorage.setItem("solaceChat", JSON.stringify(conversation));
         updateMemoryUsage();
