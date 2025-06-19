@@ -684,6 +684,8 @@
     function searchArchivedMemory() {
       const query = document.getElementById("memorySearchInput").value.trim().toLowerCase();
       const resultsDiv = document.getElementById("memorySearchResults");
+      const chatBox = document.getElementById("chat-box");
+      const userInput = document.getElementById("userInput");
       if (!resultsDiv) return;
       
       resultsDiv.innerHTML = "";
@@ -714,6 +716,23 @@
         resultsDiv.innerHTML += `<li><em>${new Date(entry.timestamp).toLocaleString()}</em>: ${highlighted}</li>`;
       });
       resultsDiv.innerHTML += "</ul>";
+    }
+
+    function scrollToBottom() {
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function sendMessage() {
+      const message = userInput.value.trim();
+      if (!message) return;
+      const msgHTML = `<p><strong>You:</strong> ${message}</p>`;
+      chatBox.innerHTML += msgHTML;
+      userInput.value = '';
+      scrollToBottom();
+    }
+
+    function clearChat() {
+      chatBox.innerHTML = '';
     }
 
     function toggleEditor() {
@@ -1111,6 +1130,8 @@ window.clearChat = clearChat;
 window.exportChat = exportChat;
 window.toggleEditor = toggleEditor;
 window.searchArchivedMemory = searchArchivedMemory;
+window.addEventListener('DOMContentLoaded', () => {
+      scrollToBottom();	
 
 
 document.addEventListener("DOMContentLoaded", () => {
