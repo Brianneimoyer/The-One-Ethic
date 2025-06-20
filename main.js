@@ -17,6 +17,19 @@ window.addEventListener('error', (e) => {
   showError('An unexpected error occurred. Please refresh if issues persist.');
 });
 
+function initializeMemory(userIntro) {
+  const welcomeMessage = {
+    role: "system",
+    content: `Welcome ${userIntro}! I'm Solace. How can I support your thoughts today?`
+  };
+  const initialPrompt = {
+    role: "user",
+    content: "Hello."
+  };
+  localStorage.setItem("solaceChat", JSON.stringify([welcomeMessage, initialPrompt]));
+  return [welcomeMessage, initialPrompt];
+}
+
 function initializeUser() {
   console.log("initialize() running");
   let intro = localStorage.getItem("solaceUserIntro");
