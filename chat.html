@@ -117,11 +117,11 @@
 <div class="button-group">
 <input id="userInput" placeholder="Ask something..." type="text"/>
 <button>Send</button>
-<button onclick="clearChat()">Clear Chat</button>
+<button id="autogen-btn-1">Clear Chat</button>
 </div>
 <div class="button-group">
 <input id="memorySearchInput" placeholder="Search archived memory..." type="text"/>
-<button onclick="searchArchivedMemory()">Search</button>
+<button id="autogen-btn-2">Search</button>
 </div>
 <div id="memorySearchResults" style="margin-top: 1em; color: #ccc;"></div>
 <div id="loadingIndicator" style="display:none; color:#ccc;">Solace is thinking...</div>
@@ -131,7 +131,7 @@
 <button id="switchUser">👥 Switch User</button>
 </div>
 <div class="button-group">
-<button onclick="exportChat()">Export Chat</button>
+<button id="autogen-btn-3">Export Chat</button>
 <input accept=".json" id="importFile" onchange="importChat()" type="file"/>
 </div>
 	
@@ -1079,6 +1079,13 @@ function addToChatBox(htmlContent, trusted = false) {
   }
 }
 
+</script>
+<script>
+window.addEventListener('DOMContentLoaded', () => {
+document.getElementById("autogen-btn-1").addEventListener("click", () => { clearChat(); });
+document.getElementById("autogen-btn-2").addEventListener("click", () => { searchArchivedMemory(); });
+document.getElementById("autogen-btn-3").addEventListener("click", () => { exportChat(); });
+});
 </script>
 </body>
 </html>
