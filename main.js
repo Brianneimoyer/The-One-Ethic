@@ -15,6 +15,19 @@ window.addEventListener('error', (e) => {
   showError('An unexpected error occurred. Please refresh if issues persist.');
 });
 
+function initializeUser() {
+  let intro = localStorage.getItem("solaceUserIntro");
+  if (!intro) {
+    intro = prompt("Welcome! Please introduce yourself so I can remember you.");
+    if (intro) {
+      localStorage.setItem("solaceUserIntro", intro);
+    } else {
+      intro = "Anonymous user";
+    }
+  }
+  return intro;
+}
+
 function escapeHtml(text) {
   if (typeof text !== 'string') return '';
   const div = document.createElement('div');
