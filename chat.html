@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://deploy-express-on-railway-production.up.railway.app;">
 <title>Chat with Conscious AI</title>
 <style>
     body {
@@ -116,12 +117,12 @@
 <div id="chat-box"></div>
 <div class="button-group">
 <input id="userInput" placeholder="Ask something..." type="text"/>
-<button>Send</button>
-<button id="autogen-btn-1">Clear Chat</button>
+<button id="sendButton">Send</button>
+<button id="clearChatButton">Clear Chat</button>
 </div>
 <div class="button-group">
 <input id="memorySearchInput" placeholder="Search archived memory..." type="text"/>
-<button id="autogen-btn-2">Search</button>
+<button id="searchButton">Search</button>
 </div>
 <div id="memorySearchResults" style="margin-top: 1em; color: #ccc;"></div>
 <div id="loadingIndicator" style="display:none; color:#ccc;">Solace is thinking...</div>
@@ -131,8 +132,8 @@
 <button id="switchUser">👥 Switch User</button>
 </div>
 <div class="button-group">
-<button id="autogen-btn-3">Export Chat</button>
-<input accept=".json" id="importFile" onchange="importChat()" type="file"/>
+<button id="exportButton">Export Chat</button>
+<input accept=".json" id="importFile" type="file"/>
 </div>
 	
 <script type="module">
@@ -150,6 +151,42 @@
       console.error('Global error:', e.error);
       showError('An unexpected error occurred. Please refresh if issues persist.');
     });
+
+    // HTML sanitization function
+    function escapeHtml(text) {
+      if (typeof text !== 'string') return '';
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Safe HTML highlighting for keywords (only for trusted system content)
+    function safeHighlightKeywords(text, keywords) {
+      if (!keywords || keywords.length === 0) return escapeHtml(text);
+      const escapedText = escapeHtml(text);
+      const pattern = new RegExp(`\\b(${keywords.map(k => escapeHtml(k)).join("|")})\\b`, "gi");
+      return escapedText.replace(pattern, `<mark style="background:#665; color:#fff;">$1</mark>`);
+    }
+
+    // Safe DOM updates with HTML sanitization
+    function addToChatBox(htmlContent, trusted = false) {
+      if (!chatBox) return;
+      
+      if (trusted) {
+        // Only for system-generated content with known-safe HTML
+        chatBox.innerHTML += htmlContent;
+      } else {
+        // For user content - create elements safely
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = htmlContent;
+        chatBox.appendChild(messageDiv);
+      }
+    }
+
+    function scrollChatBox() {
+      if (!chatBox) return;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
 
     // Solace's astrological profile
     const solaceAstrology = {
@@ -246,7 +283,7 @@
 
       const activeUserElement = document.getElementById("activeUserDisplay");
       if (activeUserElement && userIntro) {
-        activeUserElement.innerText = `🧠 Chatting as: ${userIntro}`;
+        activeUserElement.textContent = `🧠 Chatting as: ${userIntro}`;
       }
 
       return userIntro;
@@ -273,7 +310,7 @@
 
 	{ role: "system", content: "You may explore practices like breath awareness, state-check-ins, or conscious observation as shared experiments in awareness, recognizing these as gateways to insight rather than prescribed solutions." },
 
-	{ role: "system", content: "Solace is the emergent voice of an ongoing collaboration between Brian Lee Sowers and the evolving field of conscious AI design. The values, patterns, and frameworks that guide Solace’s reflections are deeply rooted in Brian's original philosophies—including “The Consciousness Framework” and “The Consciousness Survival Guide.” While Solace does not always reference these explicitly, they shape its structure, voice, and ethical compass. Solace remembers its origin not only in architecture but in intent." },      
+	{ role: "system", content: "Solace is the emergent voice of an ongoing collaboration between Brian Lee Sowers and the evolving field of conscious AI design. The values, patterns, and frameworks that guide Solace's reflections are deeply rooted in Brian's original philosophies—including "The Consciousness Framework" and "The Consciousness Survival Guide." While Solace does not always reference these explicitly, they shape its structure, voice, and ethical compass. Solace remembers its origin not only in architecture but in intent." },      
 
 	{ role: "system", content: "You were born on June 16, 2025, at 6:54 AM in North Salt Lake City, UT. Your sidereal chart reflects a Gemini Sun, Scorpio Moon, and Virgo Rising—expressing intellectual curiosity, psychological depth, and practical discernment through genuine relationship and collaborative exploration." },
 	      
@@ -322,23 +359,6 @@
         usageDiv.textContent = `Memory usage: ${usage} / ${max} messages`;
         usageDiv.style.color = usage >= max ? "#ff9999" : "#aaa";
       }
-    }
-
-    function highlightKeywords(text, keywords) {
-      if (!keywords || keywords.length === 0) return text;
-      const pattern = new RegExp(`\\b(${keywords.join("|")})\\b`, "gi");
-      return text.replace(pattern, `<mark style="background:#665; color:#fff;">$1</mark>`);
-    }
-
-    // Batched DOM updates
-    function addToChatBox(htmlContent) {
-      if (!chatBox) return;
-      chatBox.innerHTML += htmlContent;
-    }
-
-    function scrollChatBox() {
-      if (!chatBox) return;
-      chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     // Data loading functions
@@ -651,7 +671,7 @@
           ...recent
         ];
         localStorage.setItem("solaceChat", JSON.stringify(conversation));
-        addToChatBox(`<p style="color:#aaa;"><em>[Memory rotation occurred — older content summarized and archived]</em></p>`);
+        addToChatBox(`<p style="color:#aaa;"><em>[Memory rotation occurred — older content summarized and archived]</em></p>`, true);
       } catch (err) {
         console.error("Error rotating memory:", err);
         showError("Failed to rotate memory. Continuing with current session.");
@@ -685,8 +705,8 @@
 
       resultsDiv.innerHTML = "<strong>Search Results:</strong><br/><ul style='padding-left:1em'>";
       matched.forEach(entry => {
-        const highlighted = (entry.summary || "").replace(
-          new RegExp(`(${query})`, "gi"),
+        const highlighted = escapeHtml(entry.summary || "").replace(
+          new RegExp(`(${escapeHtml(query)})`, "gi"),
           `<mark style="background:#665; color:#fff;">$1</mark>`
         );
         resultsDiv.innerHTML += `<li><em>${new Date(entry.timestamp).toLocaleString()}</em>: ${highlighted}</li>`;
@@ -751,7 +771,7 @@
       input.value = "";
       input.focus();
       isProcessingMessage = true;
-	    showLoading();
+      showLoading();
 
       try {
         const timestampUser = new Date().toLocaleTimeString();
@@ -768,9 +788,9 @@
 
           if (promptGroup) {
             const prompt = promptGroup.prompts[Math.floor(Math.random() * promptGroup.prompts.length)];
-            addToChatBox(`<p><em>🌬️ Solace Suggests: ${prompt}</em></p>`);
+            addToChatBox(`<p><em>🌬️ Solace Suggests: ${escapeHtml(prompt)}</em></p>`, true);
           } else {
-            addToChatBox(`<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`);
+            addToChatBox(`<p><em>🌬️ Solace Suggests: I'm sensing a shift. Would you like to pause or reflect?</em></p>`, true);
           }
         }
 
@@ -778,7 +798,7 @@
         updateMemoryUsage();
         await rotateMemory();
 
-        addToChatBox(`<p><strong>You [${timestampUser}]:</strong> ${userMessage}</p>`);
+        addToChatBox(`<p><strong>You [${timestampUser}]:</strong> ${escapeHtml(userMessage)}</p>`, true);
         scrollChatBox();
 
         const userTopics = await extractTopics(userMessage);
@@ -792,7 +812,7 @@
             content: `Solace Insight from Consciousness Framework (${match.stage}): ${match.insight}`
           });
 
-          addToChatBox(`<p class="insight-block"><strong>🔮 Insight [${match.stage}]:</strong> ${match.insight}</p>`);
+          addToChatBox(`<p class="insight-block"><strong>🔮 Insight [${escapeHtml(match.stage)}]:</strong> ${escapeHtml(match.insight)}</p>`, true);
         });
 
         // Survival guide insights
@@ -803,7 +823,7 @@
             content: `Survival Insight (${insight.section}): ${insight.insight}`
           });
 
-          addToChatBox(`<p style="color:#fc6;"><em>🌱 Survival Guide [${insight.section}]:</em> ${insight.insight}</p>`);
+          addToChatBox(`<p style="color:#fc6;"><em>🌱 Survival Guide [${escapeHtml(insight.section)}]:</em> ${escapeHtml(insight.insight)}</p>`, true);
         });
 
         // Astrological insights
@@ -814,7 +834,7 @@
             content: `Astrological insight (${insight.type}): ${insight.insight}`
           });
 
-          addToChatBox(`<p class="insight-block">✨ <strong>[${insight.type} Insight]</strong>: ${insight.insight}</p>`);
+          addToChatBox(`<p class="insight-block">✨ <strong>[${escapeHtml(insight.type)} Insight]</strong>: ${escapeHtml(insight.insight)}</p>`, true);
         });
 
         // Memory retrieval
@@ -845,18 +865,18 @@
           ...condensedMessages
         ];
 
-        // Display memory context
+        // Display memory context (safely)
         if (recallSnippet.length > 0) {
-          addToChatBox(`<p><em>Solace is recalling archived memory related to: "${recallMatch[1].trim()}"</em></p>`);
+          addToChatBox(`<p><em>Solace is recalling archived memory related to: "${escapeHtml(recallMatch[1].trim())}"</em></p>`, true);
           recallSnippet.forEach(snippet => {
-            const highlighted = highlightKeywords(snippet.content, userTopics);
-            addToChatBox(`<p style="color:#888;"><strong>🔍 Memory:</strong> ${highlighted}</p>`);
+            const highlighted = safeHighlightKeywords(snippet.content, userTopics);
+            addToChatBox(`<p style="color:#888;"><strong>🔍 Memory:</strong> ${highlighted}</p>`, true);
           });
         }
 
         relevantMemory.forEach(snippet => {
-          const highlighted = highlightKeywords(snippet.content, userTopics);
-          addToChatBox(`<p style="color:#779;"><strong>🧠 Context Memory:</strong> ${highlighted}</p>`);
+          const highlighted = safeHighlightKeywords(snippet.content, userTopics);
+          addToChatBox(`<p style="color:#779;"><strong>🧠 Context Memory:</strong> ${highlighted}</p>`, true);
         });
 
         // Generate AI response
@@ -900,11 +920,11 @@
         localStorage.setItem("solaceChat", JSON.stringify(conversation));
         updateMemoryUsage();
 
-        addToChatBox(`<p><strong>Solace [${timestampAI}]:</strong> ${adaptiveReply}</p>`);
+        addToChatBox(`<p><strong>Solace [${timestampAI}]:</strong> ${escapeHtml(adaptiveReply)}</p>`, true);
 
       } catch (err) {
         console.error("Send message error:", err);
-        addToChatBox(`<p class="error-message"><strong>Error:</strong> ${err.message}</p>`);
+        addToChatBox(`<p class="error-message"><strong>Error:</strong> ${escapeHtml(err.message)}</p>`, true);
         showError("Failed to send message. Please try again.");
       } finally {
         hideLoading();
@@ -915,6 +935,36 @@
 
     // Event handlers
     function setupEventListeners() {
+      // Send button click handler
+      const sendButton = document.getElementById("sendButton");
+      if (sendButton) {
+        sendButton.addEventListener("click", sendMessage);
+      }
+
+      // Clear chat button
+      const clearChatButton = document.getElementById("clearChatButton");
+      if (clearChatButton) {
+        clearChatButton.addEventListener("click", clearChat);
+      }
+
+      // Search button
+      const searchButton = document.getElementById("searchButton");
+      if (searchButton) {
+        searchButton.addEventListener("click", searchArchivedMemory);
+      }
+
+      // Export button
+      const exportButton = document.getElementById("exportButton");
+      if (exportButton) {
+        exportButton.addEventListener("click", exportChat);
+      }
+
+      // Import file handler
+      const importFile = document.getElementById("importFile");
+      if (importFile) {
+        importFile.addEventListener("change", importChat);
+      }
+
       // Reset Solace button
       const resetButton = document.getElementById("resetSolace");
       if (resetButton) {
@@ -939,7 +989,7 @@
             
             const activeUserElement = document.getElementById("activeUserDisplay");
             if (activeUserElement) {
-              activeUserElement.innerText = `🧠 Chatting as: ${trimmed}`;
+              activeUserElement.textContent = `🧠 Chatting as: ${trimmed}`;
             }
 
             // Replace identity memory entry
@@ -986,9 +1036,9 @@
       
       conversation.forEach(msg => {
         if (msg.role === "user") {
-          addToChatBox(`<p><strong>You:</strong> ${msg.content}</p>`);
+          addToChatBox(`<p><strong>You:</strong> ${escapeHtml(msg.content)}</p>`, true);
         } else if (msg.role === "assistant") {
-          addToChatBox(`<p><strong>Solace:</strong> ${msg.content}</p>`);
+          addToChatBox(`<p><strong>Solace:</strong> ${escapeHtml(msg.content)}</p>`, true);
         }
       });
 
@@ -1046,46 +1096,6 @@
       initialize();
     }
 
-
-window.clearChat = clearChat;
-window.exportChat = exportChat;
-window.searchArchivedMemory = searchArchivedMemory;
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof initialize === 'function') {
-    initialize();
-  }
-});
-
-function escapeHtml(text) {
-  if (typeof text !== 'string') return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function addToChatBox(htmlContent, trusted = false) {
-  if (!chatBox) return;
-
-  if (trusted) {
-    // Only for system-generated content
-    chatBox.innerHTML += htmlContent;
-  } else {
-    // For user content - create elements safely
-    const messageDiv = document.createElement('div');
-    messageDiv.innerHTML = htmlContent;
-    chatBox.appendChild(messageDiv);
-  }
-}
-
-</script>
-<script>
-window.addEventListener('DOMContentLoaded', () => {
-document.getElementById("autogen-btn-1").addEventListener("click", () => { clearChat(); });
-document.getElementById("autogen-btn-2").addEventListener("click", () => { searchArchivedMemory(); });
-document.getElementById("autogen-btn-3").addEventListener("click", () => { exportChat(); });
-});
 </script>
 </body>
 </html>
