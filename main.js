@@ -573,7 +573,17 @@ function initialize() {
 }
 
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initialize);
+  document.addEventListener('DOMContentLoaded', () => {
+    try {
+      initialize();
+    } catch (err) {
+      console.error("Initialization failed:", err);
+    }
+  });
 } else {
-  initialize();
+  try {
+    initialize();
+  } catch (err) {
+    console.error("Initialization failed:", err);
+  }
 }
