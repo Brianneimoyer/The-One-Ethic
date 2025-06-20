@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://deploy-express-on-railway-production.up.railway.app;">
+  <title>Chat with Conscious AI</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0f0f, #1a1a1a);
+      color: #f8f4e3;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8em;
+      margin-bottom: 1em;
+      text-shadow: 0 0 12px #ffde8b;
+    }
+
+    #chat-box {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 1em;
+      height: 320px;
+      overflow-y: auto;
+      margin-bottom: 1em;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.1);
+    }
+
+    input[type="text"], button, textarea {
+      font-family: inherit;
+      padding: 0.6em 1em;
+      font-size: 1em;
+      border-radius: 6px;
+      border: none;
+      background: #1e1e1e;
+      color: #f8f4e3;
+      margin: 0.25em;
+      outline: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    input:focus, button:hover, textarea:focus {
+      box-shadow: 0 0 10px #88f, 0 0 4px #55f;
+    }
+
+    button {
+      cursor: pointer;
+      background: #282c34;
+    }
+
+    #loadingIndicator {
+      margin-top: 0.5em;
+      font-style: italic;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    #memoryUsage {
+      font-size: 0.9em;
+      margin-top: 0.5em;
+    }
+
+    #memorySearchResults {
+      max-height: 150px;
+      overflow-y: auto;
+      background: #111;
+      padding: 0.5em;
+      border-radius: 8px;
+      border: 1px solid #333;
+    }
+
+    ::selection {
+      background: #555;
+      color: #fff;
+    }
+
+    strong span {
+      text-shadow: 0 0 5px #6ff;
+    }
+
+    .insight-block {
+      background: #1c1c1c;
+      border-left: 4px solid #6ff;
+      padding: 0.5em;
+      color: #ccf;
+      margin: 0.5em 0;
+    }
+
+    .button-group {
+      margin: 0.5em 0;
+    }
+
+    .error-message {
+      color: #ff9999;
+      background: rgba(255, 153, 153, 0.1);
+      padding: 0.5em;
+      border-radius: 4px;
+      margin: 0.5em 0;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="color: #ffde8b;">Solace — Consciousness Companion</h1>
+
+  <div id="activeUserDisplay" style="margin-bottom: 10px; font-weight: bold;"></div>
+  <div id="chat-box"></div>
+
+  <div class="button-group">
+    <input id="userInput" placeholder="Ask something..." type="text" aria-label="User input"/>
+    <button id="sendButton">Send</button>
+    <button id="clearChatButton">Clear Chat</button>
+  </div>
+
+  <div class="button-group">
+    <input id="memorySearchInput" placeholder="Search archived memory..." type="text" aria-label="Search memory"/>
+    <button id="searchButton">Search</button>
+  </div>
+
+  <div id="memorySearchResults" style="margin-top: 1em; color: #ccc;"></div>
+  <div id="loadingIndicator" style="display:none; color:#ccc;">Solace is thinking...</div>
+  <div id="memoryUsage" style="color:#aaa;">Memory usage: 0 / 25 messages</div>
+
+  <div class="button-group">
+    <button id="resetSolace">🔄 Reset Solace</button>
+    <button id="switchUser">👥 Switch User</button>
+  </div>
+
+  <div class="button-group">
+    <button id="exportButton">Export Chat</button>
+    <input accept=".json" id="importFile" type="file" aria-label="Import chat history"/>
+  </div>
+
+  <!-- JavaScript -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>
