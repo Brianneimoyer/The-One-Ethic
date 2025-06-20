@@ -12,6 +12,20 @@ const driftThreshold = 2.5;
 
 console.log("main.js loaded");
 
+function setupEventListeners() {
+  document.getElementById("sendButton").addEventListener("click", sendMessage);
+  document.getElementById("clearChatButton").addEventListener("click", clearChat);
+  document.getElementById("searchButton").addEventListener("click", searchMemory);
+  document.getElementById("switchUser").addEventListener("click", switchUser);
+  document.getElementById("resetSolace").addEventListener("click", resetSolace);
+  document.getElementById("exportButton").addEventListener("click", exportChat);
+  document.getElementById("importFile").addEventListener("change", importChatHistory);
+
+  document.getElementById("userInput").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") sendMessage();
+  });
+}
+
 window.addEventListener('error', (e) => {
   console.error('Global error:', e.error);
   showError('An unexpected error occurred. Please refresh if issues persist.');
