@@ -54,23 +54,6 @@
       background: #282c34;
     }
 
-    #editorContainer h3 {
-      color: #aad;
-      border-bottom: 1px solid #334;
-      padding-bottom: 0.25em;
-      margin-bottom: 0.5em;
-    }
-
-    textarea {
-      background: #121212;
-      color: #f8f4e3;
-      border: 1px solid #444;
-      border-radius: 5px;
-      padding: 0.75em;
-      font-family: 'Fira Code', monospace;
-      font-size: 0.9em;
-    }
-
     #loadingIndicator {
       margin-top: 0.5em;
       font-style: italic;
@@ -149,14 +132,9 @@
 </div>
 <div class="button-group">
 <button onclick="exportChat()">Export Chat</button>
-<button onclick="toggleEditor()">Toggle Memory Editor</button>
 <input accept=".json" id="importFile" onchange="importChat()" type="file"/>
 </div>
-<div id="editorContainer" style="margin-top: 2em; display: none;">
-<h3>Edit Solace's Memory</h3>
-<textarea id="systemMemoryEditor" style="width: 100%; height: 200px;"></textarea>
-<button onclick="saveSystemMemory()">Update Memory</button>
-</div>
+	
 <script type="module">
 // Global variables
     let conversation = [];
@@ -716,24 +694,6 @@
       resultsDiv.innerHTML += "</ul>";
     }
 
-    function toggleEditor() {
-      const editorBox = document.getElementById("editorContainer");
-      if (!editorBox) return;
-      
-      const isHidden = editorBox.style.display === "none" || !editorBox.style.display;
-      editorBox.style.display = isHidden ? "block" : "none";
-      
-      if (isHidden) {
-        // Load current system memory when opening editor
-        const currentMemory = JSON.parse(localStorage.getItem("solaceChat") || "[]");
-        const systemOnly = currentMemory.filter(msg => msg.role === "system");
-        const editor = document.getElementById("systemMemoryEditor");
-        if (editor) {
-          editor.value = JSON.stringify(systemOnly, null, 2);
-        }
-      }
-    }
-
     function exportChat() {
       const dataStr = JSON.stringify(conversation, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
@@ -775,26 +735,6 @@
           initializeMemory(userIntro);
         }
         location.reload();
-      }
-    }
-
-    function saveSystemMemory() {
-      const editor = document.getElementById("systemMemoryEditor");
-      if (!editor) return;
-      
-      try {
-        const newSystem = JSON.parse(editor.value);
-        if (!Array.isArray(newSystem)) throw new Error("Must be a JSON array.");
-        
-        const fullMemory = JSON.parse(localStorage.getItem("solaceChat") || "[]");
-        const nonSystem = fullMemory.filter(msg => msg.role !== "system");
-        const updated = [...newSystem, ...nonSystem];
-        
-        localStorage.setItem("solaceChat", JSON.stringify(updated));
-        alert("Memory updated! Reloading...");
-        location.reload();
-      } catch (err) {
-        showError("Error updating memory: " + err.message);
       }
     }
 
@@ -1109,20 +1049,6 @@
 
 window.clearChat = clearChat;
 window.exportChat = exportChat;
-window.toggleEditor = toggleEditor;
-window.searchArchivedMemory = searchArchivedMemory;
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (typeof initialize === 'function') {
-    initialize();
-  }
-});
-
-
-window.clearChat = clearChat;
-window.exportChat = exportChat;
-window.toggleEditor = toggleEditor;
 window.searchArchivedMemory = searchArchivedMemory;
 
 
@@ -1132,7 +1058,5 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 </script>
-
-
 </body>
 </html>
