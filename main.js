@@ -10,12 +10,15 @@ let chatBox;
 let isProcessingMessage = false;
 const driftThreshold = 2.5;
 
+console.log("main.js loaded");
+
 window.addEventListener('error', (e) => {
   console.error('Global error:', e.error);
   showError('An unexpected error occurred. Please refresh if issues persist.');
 });
 
 function initializeUser() {
+  console.log("initialize() running");
   let intro = localStorage.getItem("solaceUserIntro");
   if (!intro) {
     intro = prompt("Welcome! Please introduce yourself so I can remember you.");
@@ -38,7 +41,7 @@ function escapeHtml(text) {
 function safeHighlightKeywords(text, keywords) {
   if (!keywords || keywords.length === 0) return escapeHtml(text);
   const escapedText = escapeHtml(text);
-  const pattern = new RegExp(`\b(${keywords.map(k => escapeHtml(k)).join("|")})\b`, "gi");
+  const pattern = new RegExp(`\\b(${keywords.map(k => escapeHtml(k)).join("|")})\\b`, "gi");
   return escapedText.replace(pattern, `<mark style="background:#665; color:#fff;">$1</mark>`);
 }
 
