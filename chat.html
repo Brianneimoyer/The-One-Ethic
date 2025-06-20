@@ -1057,6 +1057,29 @@ document.addEventListener("DOMContentLoaded", () => {
     initialize();
   }
 });
+
+function escapeHtml(text) {
+  if (typeof text !== 'string') return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function addToChatBox(htmlContent, trusted = false) {
+  if (!chatBox) return;
+
+  if (trusted) {
+    // Only for system-generated content
+    chatBox.innerHTML += htmlContent;
+  } else {
+    // For user content - create elements safely
+    const messageDiv = document.createElement('div');
+    messageDiv.innerHTML = htmlContent;
+    chatBox.appendChild(messageDiv);
+  }
+}
+
 </script>
 </body>
 </html>
+
